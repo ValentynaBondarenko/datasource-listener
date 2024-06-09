@@ -1,48 +1,73 @@
 package com.bondarenko;
 
-import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.PostgreSQLContainer;
+import com.bondarenko.listener.*;
+import org.h2.jdbcx.*;
+import org.junit.jupiter.api.*;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
+import java.sql.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 class DataSourceListenerTest {
+    private DataSourceListener dataSourceListener;
+
+    @BeforeEach
+    void setUp() {
+        JdbcDataSource h2DataSource = new JdbcDataSource();
+        h2DataSource.setUrl("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE");
+        h2DataSource.setUser("sa");
+        dataSourceListener = new DataSourceListener(h2DataSource);
+    }
+
+
     @Test
-    public void testDataSourceWrapper() throws Exception {
-        try (PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:latest")) {
-            postgres.start();
+    void assertQueryCount() {
+        //prepare
+        DataSourceListener.reset();
 
-            String jdbcUrl = postgres.getJdbcUrl();
-            String username = postgres.getUsername();
-            String password = postgres.getPassword();
+        //when
+        performSelectQueries();
 
+        //then
+        assertEquals(3, DataSourceListener.getSelectCount());
+        assertEquals(3, DataSourceListener.getInsertCount());
+        assertEquals(1, DataSourceListener.getUpdateCount());
+        assertEquals(2, DataSourceListener.getDeleteCount());
 
-            try (Connection conn = DriverManager.getConnection(jdbcUrl, username, password)) {
-                try (Statement stmt = conn.createStatement()) {
-                    stmt.executeUpdate("CREATE TABLE test_table (id SERIAL PRIMARY KEY, name VARCHAR(255))");
-                }
+        //when
+        DataSourceListener.reset();
 
-                try (Statement stmt = conn.createStatement()) {
-                    stmt.executeQuery("SELECT * FROM test_table");
-                    DataSourceListener.getInstance().processQuery("SELECT * FROM test_table");
+        //then
+        assertEquals(0, DataSourceListener.getSelectCount());
+        assertEquals(0, DataSourceListener.getInsertCount());
+        assertEquals(0, DataSourceListener.getUpdateCount());
+        assertEquals(0, DataSourceListener.getDeleteCount());
+    }
 
-                    stmt.executeUpdate("INSERT INTO test_table (name) VALUES ('test')");
-                    DataSourceListener.getInstance().processQuery("INSERT INTO test_table (name) VALUES ('test')");
+    private void performSelectQueries() {
+        try (Connection connection = DataSourceListener.getDataSource().getConnection()) {
+            Statement statement = connection.createStatement();
+            statement.execute("CREATE TABLE IF NOT EXISTS table1 (id INT PRIMARY KEY, name VARCHAR(255))");
 
-                    stmt.executeUpdate("UPDATE test_table SET name = 'updated' WHERE id = 1");
-                    DataSourceListener.getInstance().processQuery("UPDATE test_table SET name = 'updated' WHERE id = 1");
-                }
+            // INSERT queries
+            statement.executeUpdate("INSERT INTO table1 (id, name) VALUES (1, 'Name1')");
+            statement.executeUpdate("INSERT INTO table1 (id, name) VALUES (2, 'Name2')");
+            statement.executeUpdate("INSERT INTO table1 (id, name) VALUES (3, 'Name3')");
 
-                DataSourceListener dataSourceListener = DataSourceListener.getInstance();
-                assertEquals(1, dataSourceListener.getSelectCount());
-                assertEquals(1, dataSourceListener.getInsertCount());
-                assertEquals(1, dataSourceListener.getUpdateCount());
-                assertEquals(0, dataSourceListener.getDeleteCount());
-            }
+            // SELECT queries
+            statement.executeQuery("SELECT * FROM table1");
+            statement.executeQuery("SELECT * FROM table1");
+            statement.executeQuery("SELECT * FROM table1");
 
+            // UPDATE query
+            statement.executeUpdate("UPDATE table1 SET name = 'UpdatedName' WHERE id = 1");
+
+            // DELETE queries
+            statement.executeUpdate("DELETE FROM table1 WHERE id = 2");
+            statement.executeUpdate("DELETE FROM table1 WHERE id = 3");
+        } catch (SQLException e) {
+            throw new RuntimeException("Can`t execute query", e);
         }
+
     }
 }
