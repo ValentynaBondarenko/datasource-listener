@@ -1,6 +1,7 @@
 package com.bondarenko;
 
 import com.bondarenko.listener.*;
+import com.bondarenko.proxydatasource.*;
 import org.h2.jdbcx.*;
 import org.junit.jupiter.api.*;
 
@@ -9,35 +10,35 @@ import java.sql.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class DataSourceListenerTest {
-    private DataSourceListener dataSourceListener;
+    private ProxyDataSource proxyDataSource;
 
     @BeforeEach
     void setUp() {
         JdbcDataSource h2DataSource = new JdbcDataSource();
         h2DataSource.setUrl("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE");
         h2DataSource.setUser("sa");
-        dataSourceListener = new DataSourceListener(h2DataSource);
+        proxyDataSource = new ProxyDataSource(h2DataSource);
+        DataSourceListener.setDataSource(proxyDataSource);
     }
-
 
     @Test
     void assertQueryCount() {
-        //prepare
+        // Prepare
         DataSourceListener.reset();
 
-        //when
+        // When
         performSelectQueries();
 
-        //then
+        // Then
         assertEquals(3, DataSourceListener.getSelectCount());
         assertEquals(3, DataSourceListener.getInsertCount());
         assertEquals(1, DataSourceListener.getUpdateCount());
         assertEquals(2, DataSourceListener.getDeleteCount());
 
-        //when
+        // When
         DataSourceListener.reset();
 
-        //then
+        // Then
         assertEquals(0, DataSourceListener.getSelectCount());
         assertEquals(0, DataSourceListener.getInsertCount());
         assertEquals(0, DataSourceListener.getUpdateCount());
@@ -45,7 +46,7 @@ class DataSourceListenerTest {
     }
 
     private void performSelectQueries() {
-        try (Connection connection = DataSourceListener.getDataSource().getConnection()) {
+        try (Connection connection = proxyDataSource.getConnection()) {
             Statement statement = connection.createStatement();
             statement.execute("CREATE TABLE IF NOT EXISTS table1 (id INT PRIMARY KEY, name VARCHAR(255))");
 
@@ -66,8 +67,7 @@ class DataSourceListenerTest {
             statement.executeUpdate("DELETE FROM table1 WHERE id = 2");
             statement.executeUpdate("DELETE FROM table1 WHERE id = 3");
         } catch (SQLException e) {
-            throw new RuntimeException("Can`t execute query", e);
+            throw new RuntimeException("Can't execute query", e);
         }
-
     }
 }
