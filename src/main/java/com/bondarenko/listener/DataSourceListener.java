@@ -6,15 +6,10 @@ import javax.sql.*;
 import java.util.concurrent.atomic.*;
 
 public class DataSourceListener {
-    private static DataSource dataSource;
     private static AtomicInteger selectCount = new AtomicInteger(0);
     private static AtomicInteger insertCount = new AtomicInteger(0);
     private static AtomicInteger updateCount = new AtomicInteger(0);
     private static AtomicInteger deleteCount = new AtomicInteger(0);
-
-    public static void setDataSource(DataSource dataSource) {
-        DataSourceListener.dataSource = dataSource;
-    }
 
     public static void reset() {
         selectCount.set(0);

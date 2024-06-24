@@ -17,8 +17,8 @@ class DataSourceListenerTest {
         JdbcDataSource h2DataSource = new JdbcDataSource();
         h2DataSource.setUrl("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE");
         h2DataSource.setUser("sa");
+        h2DataSource.setPassword("");
         proxyDataSource = new ProxyDataSource(h2DataSource);
-        DataSourceListener.setDataSource(proxyDataSource);
     }
 
     @Test
@@ -35,10 +35,10 @@ class DataSourceListenerTest {
         assertEquals(1, DataSourceListener.getUpdateCount());
         assertEquals(2, DataSourceListener.getDeleteCount());
 
-        // When
+        // Reset listener
         DataSourceListener.reset();
 
-        // Then
+        // Then again
         assertEquals(0, DataSourceListener.getSelectCount());
         assertEquals(0, DataSourceListener.getInsertCount());
         assertEquals(0, DataSourceListener.getUpdateCount());
