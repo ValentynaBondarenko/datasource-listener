@@ -14,7 +14,6 @@
         <h2.version>2.2.224</h2.version>
         <junit.version>5.11.0-M2</junit.version>
         <maven.compiler.version>3.13.0</maven.compiler.version>
-
     </properties>
     <dependencies>
         <dependency>
@@ -36,6 +35,12 @@
             <id>github</id>
             <name>datasource listener library</name>
             <url>https://maven.pkg.github.com/ValentynaBondarenko/datasource-listener</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
     </distributionManagement>
     <build>

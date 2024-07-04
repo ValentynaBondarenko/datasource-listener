@@ -1,13 +1,16 @@
 package com.bondarenko;
 
-import com.bondarenko.listener.*;
-import com.bondarenko.proxydatasource.*;
-import org.h2.jdbcx.*;
-import org.junit.jupiter.api.*;
+import com.bondarenko.listener.DataSourceListener;
+import com.bondarenko.proxydatasource.ProxyDataSource;
+import org.h2.jdbcx.JdbcDataSource;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class DataSourceListenerTest {
     private ProxyDataSource proxyDataSource;

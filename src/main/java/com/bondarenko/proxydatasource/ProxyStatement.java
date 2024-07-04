@@ -1,8 +1,12 @@
 package com.bondarenko.proxydatasource;
 
-import com.bondarenko.listener.*;
+import com.bondarenko.listener.DataSourceListener;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.SQLWarning;
+import java.sql.Statement;
 
 public class ProxyStatement implements Statement {
     private final Statement realStatement;

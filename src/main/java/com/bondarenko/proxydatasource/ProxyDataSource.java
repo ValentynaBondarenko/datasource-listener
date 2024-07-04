@@ -1,9 +1,11 @@
 package com.bondarenko.proxydatasource;
 
-import javax.sql.*;
-import java.io.*;
-import java.sql.*;
-import java.util.logging.*;
+import javax.sql.DataSource;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.util.logging.Logger;
 
 public class ProxyDataSource implements DataSource {
     private final DataSource realDataSource;

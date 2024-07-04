@@ -1,9 +1,6 @@
 package com.bondarenko.listener;
 
-import com.bondarenko.proxydatasource.*;
-
-import javax.sql.*;
-import java.util.concurrent.atomic.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DataSourceListener {
     private static AtomicInteger selectCount = new AtomicInteger(0);
